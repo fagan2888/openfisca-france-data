@@ -231,20 +231,22 @@ def check_structure(dataframe):
         return False, erroneous_ids_by_entity
 
 
-def build_cerfa_fields_by_column_name(year, sections_cerfa):
+def build_cerfa_fields_by_variable(year):
     tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
-    cerfa_fields_by_column_name = dict()
-    for name, column in tax_benefit_system.variables.iteritems():
-        for section_cerfa in sections_cerfa:
-            if name.startswith('f{}'.format(section_cerfa)):
-                end = column.end or None
-                if end is None or end.year >= year:
-                    if column.entity.key == 'individu':
-                        cerfa_field = ['f' + x.lower().encode('ascii', 'ignore') for x in column.cerfa_field.values()]
-                    elif column.entity.key == 'foyer_fiscal':
-                        cerfa_field = ['f' + column.cerfa_field.lower().encode('ascii', 'ignore')]
-                    cerfa_fields_by_column_name[name.encode('ascii', 'ignore')] = cerfa_field
-    return cerfa_fields_by_column_name
+    cerfa_fields_by_variable = dict()
+    for name, variable in sorted(tax_benefit_system.variables.items()):
+        if variable.cerfa_field is None:
+            continue
+        if name.startswith('case') or name.startswith('nb'):
+            continue
+        end = variable.end or None
+        if end is None or end.year >= year:
+            if variable.entity.key == 'individu':
+                cerfa_field = ['f' + x.lower().encode('ascii', 'ignore') for x in variable.cerfa_field.values()]
+            elif variable.entity.key == 'foyer_fiscal':
+                cerfa_field = ['f' + variable.cerfa_field.lower().encode('ascii', 'ignore')]
+            cerfa_fields_by_variable[name.encode('ascii', 'ignore')] = cerfa_field
+    return cerfa_fields_by_variable
 
 
 def build_cerfa_fields_by_variable(year):
@@ -363,3 +365,11 @@ def store_input_data_frame(data_frame = None, collection = None, survey = None, 
     json_file_path = os.path.join(collections_directory, '{}.json'.format(collection))
     log.debug("In collection {} the following surveyx are present: {}".format(collection, openfisca_survey_collection.surveys))
     openfisca_survey_collection.dump(json_file_path = json_file_path)
+
+
+if __name__ == '__main__':
+    year = 2016
+    sections_cerfa = ['1']
+    cerfa_fields_by_column_name = build_cerfa_fields_by_variable(year)
+    import pprint
+    pprint.pprint(cerfa_fields_by_column_name)
