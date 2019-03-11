@@ -10,6 +10,8 @@ from openfisca_france_data.utils import (
     id_formatter, print_id, normalizes_roles_in_entity,
     )
 from openfisca_survey_manager.temporary import temporary_store_decorator
+from openfisca_survey_manager.input_dataframe_generator import set_table_in_survey
+
 
 log = logging.getLogger(__name__)
 
@@ -75,23 +77,25 @@ def create_input_data_frame(temporary_store = None, year = None):
     menages["statut_occupation_logement"] = 0
 
     menages = extract_menages_variables(menages)
-    # individus.to_csv("indivs.csv")
-    # menages.to_csv("menages.csv")
     individus = create_collectives_foyer_variables(individus, menages)
-    data_frame = individus.merge(
-        menages[
-            ['idmen', 'loyer', 'statut_occupation_logement', 'taxe_habitation', 'wprm', 'zone_apl']
-            ],
-        on = 'idmen'
-        )
-    # data_frame.to_csv("indivjoinmen.csv")
-    del individus, menages
 
-    #
-    data_frame = format_ids_and_roles(data_frame)
-    assert 'f4ba' in data_frame.columns
-    temporary_store['input_{}'.format(year)] = data_frame
-    return data_frame
+    menages = menages[
+        ['idmen', 'loyer', 'statut_occupation_logement', 'taxe_habitation', 'wprm', 'zone_apl']
+        ].copy()
+    set_table_in_survey(
+        menages, entity = "menage", period = year, collection = "toto", survey_name = 'input')
+    table_by_entity[entity] = entity + '_' + str(period)
+
+
+    individus = format_ids_and_roles(individus)
+    set_table_in_survey(
+        individus, entity = "individu", period = year, collection = "toto", survey_name = 'input')
+
+    # assert 'f4ba' in data_frame.columns
+    # temporary_store['input_{}'.format(year)] = data_frame
+    # return data_frame
+
+
 
 
 def create_collectives_foyer_variables(individus, menages):
@@ -136,11 +140,8 @@ def create_collectives_foyer_variables(individus, menages):
 
 
 def create_ids_and_roles(individus):
-    old_by_new_variables = {
-        'ident': 'idmen',
-        }
     individus.rename(
-        columns = old_by_new_variables,
+        columns = {'ident': 'idmen'},
         inplace = True,
         )
     individus['quimen'] = 9
