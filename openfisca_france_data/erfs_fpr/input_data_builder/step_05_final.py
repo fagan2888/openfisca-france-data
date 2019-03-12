@@ -82,10 +82,9 @@ def create_input_data_frame(temporary_store = None, year = None):
     menages = menages[
         ['idmen', 'loyer', 'statut_occupation_logement', 'taxe_habitation', 'wprm', 'zone_apl']
         ].copy()
+    entity = "menage"
     set_table_in_survey(
         menages, entity = "menage", period = year, collection = "toto", survey_name = 'input')
-    table_by_entity[entity] = entity + '_' + str(period)
-
 
     individus = format_ids_and_roles(individus)
     set_table_in_survey(
@@ -94,8 +93,6 @@ def create_input_data_frame(temporary_store = None, year = None):
     # assert 'f4ba' in data_frame.columns
     # temporary_store['input_{}'.format(year)] = data_frame
     # return data_frame
-
-
 
 
 def create_collectives_foyer_variables(individus, menages):
