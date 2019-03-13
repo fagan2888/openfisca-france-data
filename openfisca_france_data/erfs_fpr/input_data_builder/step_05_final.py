@@ -82,13 +82,12 @@ def create_input_data_frame(temporary_store = None, year = None):
     menages = menages[
         ['idmen', 'loyer', 'statut_occupation_logement', 'taxe_habitation', 'wprm', 'zone_apl']
         ].copy()
-    entity = "menage"
     set_table_in_survey(
-        menages, entity = "menage", period = year, collection = "toto", survey_name = 'input')
+        menages, entity = "menage", period = year, collection = "openfisca_erfs_fpr", survey_name = 'input')
 
     individus = format_ids_and_roles(individus)
     set_table_in_survey(
-        individus, entity = "individu", period = year, collection = "toto", survey_name = 'input')
+        individus, entity = "individu", period = year, collection = "openfisca_erfs_fpr", survey_name = 'input')
 
     # assert 'f4ba' in data_frame.columns
     # temporary_store['input_{}'.format(year)] = data_frame
@@ -161,7 +160,7 @@ def format_ids_and_roles(data_frame):
     data_frame.reset_index(drop = True, inplace = True)
     data_frame = normalizes_roles_in_entity(data_frame, 'foy', 'quifoy')
     data_frame = normalizes_roles_in_entity(data_frame, 'men', 'quimen')
-    print_id(data_frame)
+    # print_id(data_frame)
     return data_frame
 
 
@@ -191,7 +190,7 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     year = 2014
     data_frame = create_input_data_frame(year = year)
-
+    print('ok')
 # TODO
 # Variables revenus collectifs
 #   rev_etranger  -> etr

@@ -62,14 +62,14 @@ def build(year = None):
     # TODO : on devrait avoir un df par entité, même par période
     final.create_input_data_frame(year = year)
     #
-    temporary_store = get_store(file_name = 'erfs_fpr')
-    data_frame = temporary_store['input_{}'.format(year)]
-    # Save the data_frame in a collection
-    store_input_data_frame(
-        data_frame = data_frame,
-        collection = "openfisca_erfs_fpr",
-        survey = "openfisca_erfs_fpr_data_{}".format(year),
-        )
+    # temporary_store = get_store(file_name = 'erfs_fpr')
+    # data_frame = temporary_store['input_{}'.format(year)]
+    # # Save the data_frame in a collection
+    # store_input_data_frame(
+    #     data_frame = data_frame,
+    #     collection = "openfisca_erfs_fpr",
+    #     survey = "openfisca_erfs_fpr_data_{}".format(year),
+    #     )
 
 
 if __name__ == '__main__':

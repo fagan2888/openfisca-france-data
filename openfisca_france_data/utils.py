@@ -313,7 +313,7 @@ def normalizes_roles_in_entity(dataframe, entity_id_name, entity_role_name, pers
     if person_id is not None:
         dataframe.set_index(person_id, inplace = True, verify_integrity = True)
     test1 = dataframe.loc[dataframe[entity_role_name] >= 2, [entity_id_name, entity_role_name]].copy()
-    test1.loc[:, entity_role_name] = 2
+    test1[entity_role_name] = 2
     j = 2
     while any(test1.duplicated([entity_id_name, entity_role_name])):
         test1.loc[test1.duplicated([entity_id_name, entity_role_name]), entity_role_name] = j + 1
