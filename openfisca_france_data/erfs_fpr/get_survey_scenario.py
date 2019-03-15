@@ -41,8 +41,8 @@ def get_survey_scenario(
     # S'il n'y a pas de données, on sait où les trouver.
     if data is None:
         input_data_table_by_entity = dict(
-            individus_2014 = None,
-            menages_2014 = None,
+            individu = 'individu_2014',
+            menage = 'menage_2014',
             )
         input_data_table_by_entity_by_period = dict()
         input_data_table_by_entity_by_period[2014] = input_data_table_by_entity

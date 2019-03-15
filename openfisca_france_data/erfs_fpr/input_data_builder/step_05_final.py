@@ -158,9 +158,9 @@ def format_ids_and_roles(data_frame):
         log.info('Reformat ids: {}'.format(entity_id))
         data_frame = id_formatter(data_frame, entity_id)
     data_frame.reset_index(drop = True, inplace = True)
-    data_frame = normalizes_roles_in_entity(data_frame, 'foy', 'quifoy')
-    data_frame = normalizes_roles_in_entity(data_frame, 'men', 'quimen')
-    # print_id(data_frame)
+    normalizes_roles_in_entity(data_frame, 'idfoy', 'quifoy')
+    normalizes_roles_in_entity(data_frame, 'idmen', 'quimen')
+    print_id(data_frame)
     return data_frame
 
 

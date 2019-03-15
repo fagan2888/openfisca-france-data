@@ -142,13 +142,15 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         if 'loyer' in input_data_frame:
             input_data_frame['loyer'] = 12 * input_data_frame.loyer
 
-        input_data_frame.loc[
-            input_data_frame.categorie_salarie.isin(range(2, 7)),
-            'categorie_salarie'
-            ] = 1
+        if 'categorie_salarie' in input_data_frame:
+            input_data_frame.loc[
+                input_data_frame.categorie_salarie.isin(range(2, 7)),
+                'categorie_salarie'
+                ] = 1
 
         for variable in ['quifam', 'quifoy', 'quimen']:
-            log.debug(input_data_frame[variable].value_counts(dropna = False))
+            if variable in input_data_frame:
+                log.debug(input_data_frame[variable].value_counts(dropna = False))
 
     def input_variable_by_entity(self):
         input_variable_by_entity = dict()
