@@ -20,9 +20,15 @@ def build_merged_dataframes(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
     log.debug("Chargement des tables des enquêtes")
-    erfs_fpr_survey_collection = SurveyCollection.load(collection = 'erfs_fpr')
-    yr = str(year)[-2:]  # 12 for 2012
+    
+    # Two number year identifier (e.g. 12 for 2012)
+    yr = str(year)[-2:]
+
+    # Years for name change of database
     add_suffix_retropole_years = [2012]
+
+    # Loading the surveys
+    erfs_fpr_survey_collection = SurveyCollection.load(collection = 'erfs_fpr')
     survey = erfs_fpr_survey_collection.get_survey('erfs_fpr_{}'.format(year))
     eec_menage = survey.get_values(table = 'fpr_mrf{}e{}t4'.format(yr, yr))
     eec_individu = survey.get_values(table = 'fpr_irf{}e{}t4'.format(yr, yr))
@@ -33,6 +39,7 @@ def build_merged_dataframes(temporary_store = None, year = None):
         fpr_individu = survey.get_values(table = 'fpr_indiv_{}'.format(year))
         fpr_menage = survey.get_values(table = 'fpr_menage_{}'.format(year))
 
+    # Merging the databases
     individus, menages = merge_tables(fpr_menage, eec_menage, eec_individu, fpr_individu, year)
     temporary_store['menages_{}'.format(year)] = menages
     del eec_menage, fpr_menage, menages
@@ -43,25 +50,36 @@ def build_merged_dataframes(temporary_store = None, year = None):
 
 def merge_tables(fpr_menage = None, eec_menage = None, eec_individu = None, fpr_individu = None, year = None,
         skip_menage = False):
+    
+    # Fusion enquête emploi et source fiscale
+
     assert (eec_individu is not None) and (fpr_individu is not None)
     log.debug(u"""
-Il y a {} individus dans fpr_individu
-Il y a {} individus dans eec_individu
-""".format(
+        Il y a {} individus dans fpr_individu
+        Il y a {} individus dans eec_individu
+        """.format(
         len(fpr_individu.noindiv.unique()),
         len(eec_individu.noindiv.unique()),
         ))
 
-    # Fusion enquête emploi et source fiscale
-
-    individus = eec_individu.merge(fpr_individu, on = ['noindiv', 'ident', 'noi'], how = "inner")
+    # There is no variable ident only ident14 and noindiv is sufficient for merging
+    individus = eec_individu.merge(fpr_individu, on = ['noindiv'], how = "inner")
+    
+    # Checking if there are no mistakes in month of birth and year of birth
     check_naia_naim(individus, year)
+
+    # Adapting variable names to changes across years
     agepr = 'agepr' if year < 2013 else "ageprm"
     cohab = 'cohab' if year < 2013 else "coured"
     lien = 'lien' if year < 2013 else 'lienprm'  # TODO attention pas les mêmes modalités
+    lpr = 'lpr' if year < 2013 else 'lprm'  # TODO attention pas les mêmes modalités
     prosa = 'prosa' if year < 2013 else 'qprcent'  # TODO attention pas les mêmes modalités
     retrai = 'retrai' if year < 2013 else 'ret'  # TODO attention pas les mêmes modalités
     txtppb = 'txtppb' if year < 2013 else 'txtppred'  # TODO attention pas les mêmes modalités
+    # Wouldn't it make more sense at this point to fix a convention as to what name is kept (old or new) and
+    # then actually change the names of the columns. We then wouldn't have to redo this every time.
+
+    # Checking type mismatches
     var_list = ([
         'acteu',
         agepr,
@@ -90,22 +108,24 @@ Il y a {} individus dans eec_individu
                 var, individus[var].dtype
                 )
 
-    if year >= 2013:
-        individus['lpr'] = individus.lprm
+    # Presumably in accordance with how we were doing it before it makes more sense to write:
+    # lpr = 'lpr' if year < 2013 else 'lprm'  # TODO attention pas les mêmes modalités
+    # And move it to the previous section
 
+    # Dealing with the household part of the surveys
     if not skip_menage:
         log.debug(u"""
-Il y a {} ménages dans fpr_menage
-Il y a {} ménages dans eec_menage
-""".format(
+            Il y a {} ménages dans fpr_menage
+            Il y a {} ménages dans eec_menage
+            """.format(
             len(fpr_menage.ident.unique()),
             len(eec_menage.ident.unique()),
         ))
         common_variables = set(fpr_menage.columns).intersection(eec_menage.columns)
         log.debug(u"""
-Les variables suivantes sont communes aux deux tables ménages:
-  {}
-""".format(common_variables))
+            Les variables suivantes sont communes aux deux tables ménages:
+            {}
+            """.format(common_variables))
         if 'th' in common_variables:
             fpr_menage.rename(columns = dict(th = 'taxe_habitation'), inplace = True)
             log.debug(u"La variable th de la table fpr_menage est renommée taxe_habitation")
@@ -116,39 +136,46 @@ Les variables suivantes sont communes aux deux tables ménages:
 
         common_variables = set(fpr_menage.columns).intersection(eec_menage.columns)
         log.debug(u"""
-Après renommage seules les variables suivantes sont communes aux deux tables ménages:
-  {}
-""".format(common_variables))
+            Après renommage seules les variables suivantes sont communes aux deux tables ménages:
+            {}
+            """.format(common_variables))
+        # In the doc, it says to use ident1X (for year 201X) but there is also an ident variable so I guess it' fine
         menages = fpr_menage.merge(eec_menage, on = 'ident', how = 'inner')
+
+        # Creates a variable "locataire" (using the household variable SO)
+        # Defined in erfs rather than erfs_fpr (Why not simply re-copy it here especially since it's short)
         create_variable_locataire(menages)
-        lprm="lpr" if year<2013 else "lprm"
-        print(year,lprm)
+        
+        # The line is now already written (It also has the opposite convention than above)
+        # lprm="lpr" if year<2013 else "lprm"
+        # print(year, lpr)
         try:
+            # Merge the reference persons highest diploma onto the household database
+            # Why is this necessary? In particular, lose information if lack of reference person (not normally possible)
+            # Why is the copy necessary?
             menages = menages.merge(
-                individus.loc[individus[lprm] == 1, ['ident', 'ddipl']].copy() #lpr (ou lprm) == 1 ==> C'est la Personne
-                #de référence
-                )
+                individus.loc[individus[lpr] == 1, ['ident', 'ddipl']].copy(), on = 'ident', how = 'inner')
+            # lpr (ou lprm) == 1 ==> C'est la personne de référence
         except:
             print(individus.dtypes)
             raise
+    
         log.debug(u"""
-Il y a {} ménages dans la base ménage fusionnée
-""".format(len(menages.ident.unique())))
-        #
-    #
-    log.debug(u"""
-Il y a {} ménages dans la base individus fusionnée
-Il y a {} individus dans la base individus fusionnée
-""".format(
-        len(individus.ident.unique()),
-        len(individus.noindiv.unique()),
-        ))
+            Il y a {} ménages dans la base ménage fusionnée
+            """.format(len(menages.ident.unique())))
+        log.debug(u"""
+            Il y a {} ménages dans la base individus fusionnée
+            Il y a {} individus dans la base individus fusionnée
+            """.format(
+            len(individus.ident.unique()),
+            len(individus.noindiv.unique()),
+            ))
 
-    # Infos sur les non appariés
-    if not skip_menage:
+        # Information on row not merged
+        # Infos sur les non appariés
         non_apparies(eec_individu, eec_menage, fpr_individu, fpr_menage)
 
-    if skip_menage:
+    else:
         menages = None
 
     return individus, menages
@@ -158,9 +185,13 @@ def non_apparies(eec_individu, eec_menage, fpr_individu, fpr_menage):
     """
     Ménages et individus non apparies
     """
+
+    # Extracts non-merged rows for households
     menages_non_apparies = eec_menage[
         ~(eec_menage.ident.isin(fpr_menage.ident.values))
         ].copy()
+
+    # Extracts non-merged rows for individuals
     individus_non_apparies = eec_individu[
         ~(eec_individu.ident.isin(fpr_individu.ident.values))
         ].copy()
@@ -196,7 +227,8 @@ def check_naia_naim(individus, year):
     assertion = good.all()
     bad_idents = individus.loc[~good, 'ident'].unique()
     try:
-        lprm="lpr" if year<2013 else "lprm"
+        # Explore the ones which went wrong
+        lpr = "lpr" if year < 2013 else "lprm"
         lien = 'lien' if year < 2013 else 'lienprm'  # TODO attention pas les mêmes modalités
         prosa = 'prosa' if year < 2013 else 'qprcent'  # TODO attention pas les mêmes modalités
         retrai = 'retrai' if year < 2013 else 'ret'  # TODO attention pas les mêmes modalités
@@ -231,6 +263,7 @@ def check_naia_naim(individus, year):
                 ]
             )
     except AssertionError:
+        # This has to be made automatic and written differently
         if year == 2012:
             log.debug('Fixing erroneous naia manually')
             individus.loc[
