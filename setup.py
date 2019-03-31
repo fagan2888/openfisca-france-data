@@ -50,8 +50,8 @@ setup(
         },
     install_requires = [
         'multipledispatch >= 0.6.0, < 1.0.0',
-        'OpenFisca-France >= 34.3.0, < 35.0.0',
-        'OpenFisca-Survey-Manager[calmar] >= 0.18.2',
+        'OpenFisca-France >= 40..0, < 41.0.0',
+        'OpenFisca-Survey-Manager[calmar] >= 0.19.1',
         'pandas >= 0.20.3',
         'tables',  # Needed by pandas.HDFStore
         'wquantiles >= 0.3'  # To compute weighted quantiles
