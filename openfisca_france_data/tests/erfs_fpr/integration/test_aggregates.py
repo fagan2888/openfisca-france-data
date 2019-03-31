@@ -52,7 +52,6 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
-    # aggregates_data_frame, difference_data_frame,
     survey_scenario, aggregates = test_erfs_fpr_survey_simulation_aggregates(
         year = 2014, rebuild_input_data = False)
     survey_scenario._set_used_as_input_variables_by_entity()

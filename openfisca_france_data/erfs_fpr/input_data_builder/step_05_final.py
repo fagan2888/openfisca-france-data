@@ -90,8 +90,6 @@ def create_input_data_frame(temporary_store = None, year = None):
         individus, entity = "individu", period = year, collection = "openfisca_erfs_fpr", survey_name = 'input')
 
     # assert 'f4ba' in data_frame.columns
-    # temporary_store['input_{}'.format(year)] = data_frame
-    # return data_frame
 
 
 def create_collectives_foyer_variables(individus, menages):

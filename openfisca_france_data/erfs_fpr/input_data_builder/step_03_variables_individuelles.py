@@ -119,7 +119,7 @@ def create_variables_individuelles(individus, year, survey_year = None):
     create_activite(individus)
     revenu_type = 'net'
     period = periods.period(year)
-    # create_revenus(individus, revenu_type = revenu_type)
+    create_revenus(individus, revenu_type = revenu_type)
     create_contrat_de_travail(individus, period = period, salaire_type = revenu_type)#, survey_year = survey_year)
     create_categorie_salarie(individus, period = period, survey_year = survey_year)
 

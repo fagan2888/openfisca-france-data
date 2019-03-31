@@ -34,7 +34,6 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'statut_marital',
         'salaire_de_base',
         'statut_occupation_logement',
-        'traitement_indiciaire_brut',
         'taxe_habitation',
         'traitement_indiciaire_brut',
         'zone_apl',
