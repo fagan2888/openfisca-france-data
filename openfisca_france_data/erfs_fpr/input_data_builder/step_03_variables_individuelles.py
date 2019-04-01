@@ -83,8 +83,7 @@ def build_variables_individuelles(temporary_store = None, year = None):
     log.info('step_03_variables_individuelles: Création des variables individuelles')
 
     individus = temporary_store['individus_{}_post_01'.format(year)]
-
-    old_by_new_variables = {
+    erfs_by_openfisca_variables = {
         'chomage_i': 'chomage_net',
         'pens_alim_recue_i': 'pensions_alimentaires_percues',
         'rag_i': 'rag_net',
@@ -94,11 +93,11 @@ def build_variables_individuelles(temporary_store = None, year = None):
         'salaires_i': 'salaire_net',
         }
 
-    for variable in old_by_new_variables.keys():
+    for variable in erfs_by_openfisca_variables.keys():
         assert variable in individus.columns.tolist(), "La variable {} n'est pas présente".format(variable)
 
     individus.rename(
-        columns = old_by_new_variables,
+        columns = erfs_by_openfisca_variables,
         inplace = True,
         )
     create_variables_individuelles(individus, year)
@@ -840,6 +839,9 @@ def create_revenus(individus, revenu_type = 'imposable'):
         salaire_imposable,
     """
 
+    individus['chomage_brut'] = individus.csgchod_i + individus.chomage_net
+    individus['retraite_brute'] = individus.csgrstd_i + individus.retraite_nette
+
     if revenu_type == 'imposable':
         variables = [
             # 'pension_alimentaires_percues',
@@ -859,33 +861,33 @@ def create_revenus(individus, revenu_type = 'imposable'):
                     negatives_values,
                     )
                 )
-        #
-        # csg des revenus de replacement
-        # 0 - Non renseigné/non pertinent
-        # 1 - Exonéré
-        # 2 - Taux réduit
-        # 3 - Taux plein
-        taux = pd.concat(
-            [
-                individus.csgrstd_i / individus.retraite_brute,
-                individus.csgchod_i / individus.chomage_brut,
+    #
+    # csg des revenus de replacement
+    # 0 - Non renseigné/non pertinent
+    # 1 - Exonéré
+    # 2 - Taux réduit
+    # 3 - Taux plein
+    taux = pd.concat(
+        [
+            individus.csgrstd_i / individus.retraite_brute,
+            individus.csgchod_i / individus.chomage_brut,
             ],
-            axis=1
-            ).max(axis = 1)
-        # taux.loc[(0 < taux) & (taux < .1)].hist(bins = 100)
-        individus['taux_csg_remplacement'] = np.select(
-            [
-                taux.isnull(),
-                taux.notnull() & (taux < 0.021),
-                taux.notnull() & (taux > 0.021) & (taux < 0.0407),
-                taux.notnull() & (taux > 0.0407)
-                ],
-            [0, 1, 2, 3]
-            )
-        for value in [0, 1, 2, 3]:
-            assert (individus.taux_csg_remplacement == value).any(), \
-                "taux_csg_remplacement ne prend jamais la valeur {}".format(value)
-        assert individus.taux_csg_remplacement.isin(range(4)).all()
+        axis = 1
+        ).max(axis = 1)
+    # taux.loc[(0 < taux) & (taux < .1)].hist(bins = 100)
+    individus['taux_csg_remplacement'] = np.select(
+        [
+            taux.isnull(),
+            taux.notnull() & (taux < 0.021),
+            taux.notnull() & (taux > 0.021) & (taux < 0.0407),
+            taux.notnull() & (taux > 0.0407)
+            ],
+        [0, 1, 2, 3]
+        )
+    for value in [0, 1, 2, 3]:
+        assert (individus.taux_csg_remplacement == value).any(), \
+            "taux_csg_remplacement ne prend jamais la valeur {}".format(value)
+    assert individus.taux_csg_remplacement.isin(range(4)).all()
 
 
 def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', tax_benefit_system = None):
@@ -1285,7 +1287,7 @@ if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     # logging.basicConfig(level = logging.INFO,  filename = 'step_03.log', filemode = 'w')
-    year = 2012
+    year = 2014
 
     #    from openfisca_france_data.erfs_fpr.input_data_builder import step_01_preprocessing
     #    step_01_preprocessing.build_merged_dataframes(year = year)

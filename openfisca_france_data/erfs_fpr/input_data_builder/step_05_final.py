@@ -29,7 +29,6 @@ def create_input_data_frame(temporary_store = None, year = None):
         'age',
         'categorie_salarie',
         'chomage_brut',
-        'chomage_imposable',
         'contrat_de_travail',
         'date_naissance',
         'effectif_entreprise',
@@ -44,7 +43,6 @@ def create_input_data_frame(temporary_store = None, year = None):
         'quimen',
         'rag',
         'retraite_brute',
-        'retraite_imposable',
         'ric',
         'rnc',
         'statut_marital',
@@ -52,20 +50,18 @@ def create_input_data_frame(temporary_store = None, year = None):
         'salaire_de_base',
         'taux_csg_remplacement',
         ]
-    # TODO : Assert if these values can be somehow gotten
-    missingvariables = [
-        'chomage_brut',
-        'chomage_imposable',
-        'rag',
-        'retraite_brute',
-        'retraite_imposable',
-        'ric',
-        'rnc',
-        'taux_csg_remplacement',
-        ]
-    for k in missingvariables:
-        individus[k] = 0 if k != "taux_csg_remplacement" else "taux plein"
-    individus = create_ids_and_roles(individus)[variables].copy()
+
+    # TODO: fix this simplistic inference
+    individus.rename(columns = {
+        'ric_net': 'ric',
+        'rag_net': 'rag',
+        'rnc_net': 'rnc',
+        },
+        inplace = True
+        )
+
+    individus = create_ids_and_roles(individus)
+    individus = individus[variables].copy()
     gc.collect()
     # This looks like it could have a sizeable impact
     missingvariablesmenages = ["taxe_habitation"]
