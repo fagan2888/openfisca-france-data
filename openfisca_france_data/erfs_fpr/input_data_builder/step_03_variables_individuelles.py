@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 # -*- coding: utf-8 -*-
 
 import logging
@@ -113,9 +113,14 @@ def create_variables_individuelles(individus, year, survey_year = None):
     '''
     C'est là les vraies étapes
     '''
+    # Create an age variable
     create_ages(individus, year)
+
+    # Create a birth date
     create_date_naissance(individus, age_variable = None, annee_naissance_variable = 'naia', mois_naissance = 'naim',
          year = year)
+
+    # Code activity variable
     create_activite(individus)
     revenu_type = 'net'
     period = periods.period(year)
@@ -206,10 +211,12 @@ def create_actrec(individus):
 
 def create_ages(individus, year = None):
     """
-    Création des variables age et age_en_moi
+    Création des variables age et age_en_mois
     """
     assert year is not None
+    # This should potentially be set to minimum of 0 because there are age = -1
     individus['age'] = year - individus.naia - 1
+    # Age in months if reference is December of the year considered
     individus['age_en_mois'] = 12 * individus.age + 12 - individus.naim  # TODO why 12 - naim
 
     for variable in ['age', 'age_en_mois']:
@@ -714,6 +721,7 @@ def create_date_naissance(individus, age_variable = 'age', annee_naissance_varia
     assert bool(age_variable) != bool(annee_naissance_variable)  # xor
 
     random_state = np.random.RandomState(42)
+    # Are birth months coded from 0 to 11?
     month_birth = 1 + random_state.randint(12, size = len(individus))
     day_birth = 1 + random_state.randint(28, size = len(individus))
 
@@ -1285,7 +1293,7 @@ if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     # logging.basicConfig(level = logging.INFO,  filename = 'step_03.log', filemode = 'w')
-    year = 2012
+    year = 2014
 
     #    from openfisca_france_data.erfs_fpr.input_data_builder import step_01_preprocessing
     #    step_01_preprocessing.build_merged_dataframes(year = year)

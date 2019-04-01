@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+
 # -*- coding: utf-8 -*-
 
 import gc
@@ -62,8 +62,8 @@ def merge_tables(fpr_menage = None, eec_menage = None, eec_individu = None, fpr_
         len(eec_individu.noindiv.unique()),
         ))
 
-    # There is no variable ident only ident14 and noindiv is sufficient for merging
-    individus = eec_individu.merge(fpr_individu, on = ['noindiv'], how = "inner")
+    # Shouldn't noindiv is sufficient for merging?
+    individus = eec_individu.merge(fpr_individu, on = ['noindiv', 'ident', 'noi'], how = "inner")
     
     # Checking if there are no mistakes in month of birth and year of birth
     check_naia_naim(individus, year)
@@ -274,7 +274,6 @@ def check_naia_naim(individus, year):
                 (individus.ident == 12041815) & (individus.noi == 1),
                 'naia'
                 ] = 2012 - 40
-            #
         else:
             AssertionError('naia and naim have invalid values')
 
