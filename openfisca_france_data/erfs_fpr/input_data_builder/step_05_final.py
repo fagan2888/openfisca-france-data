@@ -60,10 +60,15 @@ def create_input_data_frame(temporary_store = None, year = None):
         inplace = True
         )
 
+    # Creates variables for roles (e.g. reference person) and foyer variable
     individus = create_ids_and_roles(individus)
+
+    # Selects the variables of choice (listed in the variable 'variables')
     individus = individus[variables].copy()
     gc.collect()
     # This looks like it could have a sizeable impact
+
+    # Setting some missing variables in the household data to a default value
     missingvariablesmenages = ["taxe_habitation"]
     for k in missingvariablesmenages:
         menages[k] = 0
@@ -72,16 +77,29 @@ def create_input_data_frame(temporary_store = None, year = None):
     menages["zone_apl"] = 2
     menages["statut_occupation_logement"] = 0
 
+    # Selects a relevant list of variables for the household data
+    # 'ident', 'wprm', 'taxe_habitation', 'rev_fonciers_bruts'
+    # 'loyer', 'zone_apl', 'statut_occupation_logement'
     menages = extract_menages_variables(menages)
+
+    # Assigns revenus_fonciers to oldes person in menages
+    # Sets quifoy to 0 for positive rev_fonc
+    # Renames rev_fonciers_bruts to f4ba
     individus = create_collectives_foyer_variables(individus, menages)
 
+    # Not clear why separate selection is needed, only thing to be dropped is rev_foncier
     menages = menages[
         ['idmen', 'loyer', 'statut_occupation_logement', 'taxe_habitation', 'wprm', 'zone_apl']
         ].copy()
+    
+    # Enters the household table into the openfisca_erfs_fpr collection
     set_table_in_survey(
         menages, entity = "menage", period = year, collection = "openfisca_erfs_fpr", survey_name = 'input')
 
+    # Reformats and cleans some id and role variables
     individus = format_ids_and_roles(individus)
+
+    # Enters the individual table into the openfisca_erfs_fpr collection
     set_table_in_survey(
         individus, entity = "individu", period = year, collection = "openfisca_erfs_fpr", survey_name = 'input')
 
@@ -150,8 +168,14 @@ def create_ids_and_roles(individus):
 def format_ids_and_roles(data_frame):
     for entity_id in ['idmen', 'idfoy', 'idfam']:
         log.info('Reformat ids: {}'.format(entity_id))
+
+        # Reformats ids starting from 0 and increasing by one
         data_frame = id_formatter(data_frame, entity_id)
+    
+    # Resets the index
     data_frame.reset_index(drop = True, inplace = True)
+
+    # Makes roles increasing if above 2
     normalizes_roles_in_entity(data_frame, 'idfoy', 'quifoy')
     normalizes_roles_in_entity(data_frame, 'idmen', 'quimen')
     print_id(data_frame)

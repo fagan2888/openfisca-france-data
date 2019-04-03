@@ -550,8 +550,8 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     assert (individus.query('salaire == 0').contrat_de_travail == 6).all()
     assert (individus.query('(contrat_de_travail == 1) & (salaire > 0)').heures_remunerees_volume < 35).all()
     #
-    axes = (individus.query('(contrat_de_travail == 1) & (salaire > 0)').hhc).hist(bins=100)
-    axes.set_title("Heures (hhc)")
+    # axes = (individus.query('(contrat_de_travail == 1) & (salaire > 0)').hhc).hist(bins=100)
+    # axes.set_title("Heures (hhc)")
     # individus.query('(contrat_de_travail == 1) & (salaire > 0)').hhc.isnull().sum() = 489
     # 2.2.1 On abaisse le nombre d'heures pour que les gens touchent au moins le smic horaire
     temps_partiel = (individus.contrat_de_travail == 1) & (individus.salaire > 0)
@@ -574,13 +574,13 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
             temps_partiel & (~moins_que_smic_horaire_hhc) & individus.hhc.notnull(),
             'hhc'
             ]
-    axes = (individus
-        .loc[temps_partiel]
-        .query('(contrat_de_travail == 1) & (salaire > 0)')
-        .heures_remunerees_volume
-        .hist(bins=100)
-        )
-    axes.set_title("Heures (heures_remunerees_volume)")
+    # axes = (individus
+    #     .loc[temps_partiel]
+    #     .query('(contrat_de_travail == 1) & (salaire > 0)')
+    #     .heures_remunerees_volume
+    #     .hist(bins=100)
+    #     )
+    # axes.set_title("Heures (heures_remunerees_volume)")
     # 2.2.2 Il reste à ajuster le nombre d'heures pour les salariés à temps partiel qui n'ont pas de hhc
     # et qui disposent de moins que le smic_horaire ou de les basculer en temps plein sinon
     moins_que_smic_horaire_sans_hhc = (individus.salaire < smic) & individus.hhc.isnull()
@@ -665,8 +665,8 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
         (individus.salaire > smic),
         'heures_remunerees_volume'] = 15
     #
-    individus.query('salaire > 0').contrat_de_travail.value_counts(dropna = False)
-    individus.query('salaire == 0').contrat_de_travail.value_counts(dropna = False)
+    # individus.query('salaire > 0').contrat_de_travail.value_counts(dropna = False)
+    # individus.query('salaire == 0').contrat_de_travail.value_counts(dropna = False)
 
     individus.loc[salarie_sans_contrat_de_travail, 'salaire'].min()
     individus.loc[salarie_sans_contrat_de_travail, 'salaire'].hist(bins = 1000)
