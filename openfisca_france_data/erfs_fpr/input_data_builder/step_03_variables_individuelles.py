@@ -135,7 +135,7 @@ def create_variables_individuelles(individus, year, survey_year = None):
     # On n'a pas le salaire brut mais le salaire net ou imposable, on doit l'invertir
     create_salaire_de_base(individus, period = period, revenu_type = revenu_type, tax_benefit_system = tax_benefit_system)
 
-    # pour les cots patronales qui varient avec taille de la boite
+    # Pour les couts patronales qui varient avec taille de la boite
     create_effectif_entreprise(individus, period = period, survey_year = survey_year)
 
     # base pour constituer les familles, foyers, etc.
@@ -784,8 +784,7 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
             "nbsala n'est pas toujours dans l'intervalle [0, 12] ou 99 \n{}".format(
                 individus.nbsala.value_counts(dropna = False))
         individus['effectif_entreprise'] = np.select(
-            [0, 1, 2, 3, 4, 5, 5, 7, 8, 9, 10, 50, 500],
-            [
+                [
                 individus.nbsala == 0,  # 0
                 individus.nbsala == 1,  # 1
                 individus.nbsala == 2,  # 2
@@ -799,7 +798,8 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
                 individus.nbsala == 10,  # 9
                 (individus.nbsala == 11) | (individus.nbsala == 99),  # 9
                 individus.nbsala == 12,  # 9
-                ]
+                ],
+                [0, 1, 2, 3, 4, 5, 5, 7, 8, 9, 10, 50, 500]
             )
         assert individus.effectif_entreprise.isin([0, 1, 2, 3, 4, 5, 5, 7, 8, 9, 10, 50, 500]).all(), \
             "effectif_entreprise n'est pas toujours dans [0, 1, 5, 10, 20, 50, 200, 500, 1000] \n{}".format(
@@ -810,8 +810,7 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
             "nbsala n'est pas toujours dans l'intervalle [0, 9] ou 99 \n{}".format(
                 individus.nbsala.value_counts(dropna = False))
         individus['effectif_entreprise'] = np.select(
-            [0, 1, 5, 10, 20, 50, 200, 500, 1000],
-            [
+                [
                 individus.nbsala.isin([0, 1]),  # 0
                 individus.nbsala == 2,  # 1
                 individus.nbsala == 3,  # 5
@@ -821,7 +820,8 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
                 individus.nbsala == 7,  # 200
                 individus.nbsala == 8,  # 500
                 individus.nbsala == 9,  # 1000
-                ]
+                ],
+                [0, 1, 5, 10, 20, 50, 200, 500, 1000]
             )
 
         assert individus.effectif_entreprise.isin([0, 1, 5, 10, 20, 50, 200, 500, 1000]).all(), \
