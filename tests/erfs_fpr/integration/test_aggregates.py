@@ -1,57 +1,49 @@
 # -*- coding: utf-8 -*-
 
-import logging
 import numpy as np
+import pytest
 
-
-from openfisca_france_data import base_survey
+from openfisca_france.france_taxbenefitsystem import FranceTaxBenefitSystem  # type: ignore
+from openfisca_france_data import france_data_tax_benefit_system
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
 from openfisca_france_data.aggregates import Aggregates
 
 
-log = logging.getLogger(__name__)
+@pytest.fixture
+def tbs() -> FranceTaxBenefitSystem:
+    return france_data_tax_benefit_system
 
 
-def test_erfs_fpr_survey_simulation_aggregates(year = 2012, rebuild_input_data = False):
-    np.seterr(all = 'raise')
-    tax_benefit_system = base_survey.france_data_tax_benefit_system
+def test_erfs_fpr_survey_simulation_aggregates(tbs, year = 2014, rebuild_input_data = False):
+    np.seterr(all = "raise")
 
     survey_scenario = get_survey_scenario(
-        tax_benefit_system = tax_benefit_system,
-        baseline_tax_benefit_system = tax_benefit_system,
+        tax_benefit_system = tbs,
+        baseline_tax_benefit_system = tbs,
         year = year,
         rebuild_input_data = rebuild_input_data,
         )
-    return survey_scenario
+
+    aggregates = Aggregates(survey_scenario = survey_scenario)
+
+    assert aggregates.compute_aggregates(use_baseline = True, actual = False)
 
 
-def test_erfs_fpr_aggregates_reform():
-    '''
+def test_erfs_fpr_aggregates_reform(tbs, year = 2014, rebuild_input_data = False, reform = "plf2015"):
+    """
     test aggregates value with data
     :param year: year of data and simulation to test agregates
     :param reform: optional argument, put an openfisca_france.refoms object, default None
-    '''
-    tax_benefit_system = base_survey.france_data_tax_benefit_system
-    year = 2012
+    """
+    np.seterr(all = "raise")
+
     survey_scenario = get_survey_scenario(
-        reform_key = 'plf2015',
-        baseline_tax_benefit_system = tax_benefit_system,
+        baseline_tax_benefit_system = tbs,
         year = year,
-        rebuild_input_data = False,
+        rebuild_input_data = rebuild_input_data,
+        reform = reform,
         )
+
     aggregates = Aggregates(survey_scenario = survey_scenario)
-    base_data_frame = aggregates.compute_aggregates()
-    difference_data_frame = aggregates.compute_difference()
-
-    return aggregates, base_data_frame, difference_data_frame
-
-
-if __name__ == '__main__':
-    import logging
-    log = logging.getLogger(__name__)
-    import sys
-    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    # aggregates_data_frame, difference_data_frame,
-    survey_scenario = test_erfs_fpr_survey_simulation_aggregates(rebuild_input_data = False)
-    aggregates, base_data_frame, difference_data_frame = test_erfs_fpr_aggregates_reform()
-
+    assert aggregates.compute_aggregates()
+    assert aggregates.compute_difference()
