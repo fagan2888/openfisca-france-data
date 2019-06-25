@@ -5,7 +5,7 @@ import numpy as np
 
 from openfisca_france_data import france_data_tax_benefit_system
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
-from openfisca_france_data.aggregates import Aggregates
+from openfisca_france_data.aggregates import FranceAggregates as Aggregates
 
 
 log = logging.getLogger(__name__)
