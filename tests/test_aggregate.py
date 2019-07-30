@@ -3,7 +3,7 @@
 
 import pytest
 
-from openfisca_france_data.aggregates import Aggregates  # type: ignore
+from openfisca_france_data.aggregates import FranceAggregates as Aggregates # type: ignore
 from openfisca_france_data.erfs_fpr.scenario import (  # type: ignore
     ErfsFprSurveyScenario,
     )

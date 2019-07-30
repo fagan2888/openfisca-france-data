@@ -190,12 +190,3 @@ AGGREGATES_DEFAULT_VARS = [
     ]
 #  ajouter csgd pour le calcul des agrégats erfs
 #  ajouter rmi pour le calcul des agrégats erfs
-
-
-COUNTRY_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(
-    pkg_resources.get_distribution('openfisca-france-data').location,
-    'openfisca_france_data',
-    'plugins',
-    'aggregates',
-    )
