@@ -89,9 +89,17 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
     target['prive_cadre'] = set(
         ['maladie', 'arrco', 'vieillesse_deplafonnee', 'agirc', 'cet', 'apec', 'vieillesse', 'agff', 'assedic']
         )
+    target['public_titulaire_etat'] = set(['pension', 'rafp', 'excep_solidarite'])
+    # Pas de data pour categorie_salarie == "public_titulaire_militaire"
+    target['public_titulaire_territoriale'] = set(['cnracl1', 'cnracl2', 'excep_solidarite', 'rafp'])
+    target['public_titulaire_hospitaliere'] = set(['cnracl1', 'cnracl2', 'excep_solidarite', 'rafp'])
     target['public_non_titulaire'] = set(['excep_solidarite', 'maladie', 'ircantec', 'vieillesse_deplafonnee', 'vieillesse'])
-
-    for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
+    
+    categories = ['prive_non_cadre', 'prive_cadre', 
+        'public_titulaire_etat', 'public_titulaire_territoriale', 'public_titulaire_hospitaliere', 
+        'public_non_titulaire'
+        ]
+    for categorie in categories:
         baremes_collection = salarie[categorie]
         baremes_to_remove = list()
         for name, bareme in baremes_collection._children.items():
@@ -100,7 +108,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
         for name in baremes_to_remove:
             del baremes_collection._children[name]
 
-    for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
+    for categorie in categories:
         test = set(
             name for name, bareme in salarie[categorie]._children.items()
             if isinstance(bareme, MarginalRateTaxScale)
@@ -142,7 +150,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
         agirc.thresholds[2] = salaire_charniere
 
     salaire_de_base = 0.0
-    for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
+    for categorie in categories:
         if categorie == 'prive_cadre':
             add_agirc_gmp_to_agirc(salarie[categorie].agirc, parameters)
 
